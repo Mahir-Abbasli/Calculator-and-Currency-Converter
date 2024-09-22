@@ -6,32 +6,54 @@ import { add, subtract, multiply, divide, clear } from './calculatorSlice';
 const Calculator: React.FC = () => {
     const dispatch = useDispatch();
     const inputValue = useSelector((state: RootState) => state.calculator.value);
-    const [localInput, setLocalInput] = useState<string>(''); 
+    const [localInput, setLocalInput] = useState<string>('');
 
     const handleClick = (value: string) => {
         setLocalInput((prev) => prev + value);
     };
 
     const handleClear = () => {
-        dispatch(clear()); 
-        setLocalInput(''); 
+        dispatch(clear());
+        setLocalInput('');
+    };
+
+    const calculateResult = (expression: string) => {
+        const operators = expression.split(/[\d.]+/).filter(op => op);
+        const numbers = expression.split(/[^\d.]+/).map(Number);
+
+        let result = numbers[0];
+
+        for (let i = 0; i < operators.length; i++) {
+            const operator = operators[i];
+            const nextNumber = numbers[i + 1];
+
+            if (operator === '+') {
+                result += nextNumber;
+                dispatch(add(nextNumber));
+            } else if (operator === '-') {
+                result -= nextNumber;
+                dispatch(subtract(nextNumber));
+            } else if (operator === '*') {
+                result *= nextNumber;
+                dispatch(multiply(nextNumber));
+            } else if (operator === '/') {
+                if (nextNumber !== 0) {
+                    result /= nextNumber;
+                    dispatch(divide(nextNumber));
+                } else {
+                    setLocalInput('Error');
+                    return;
+                }
+            }
+        }
+
+        return result;
     };
 
     const handleEqual = () => {
         try {
-            const result = eval(localInput); 
-
-            if (localInput.includes('+')) {
-                dispatch(add(result)); 
-            } else if (localInput.includes('-')) {
-                dispatch(subtract(result)); 
-            } else if (localInput.includes('*')) {
-                dispatch(multiply(result)); 
-            } else if (localInput.includes('/')) {
-                dispatch(divide(result));
-            }
-
-            setLocalInput(result.toString()); 
+            const result = calculateResult(localInput);
+            setLocalInput(result?.toString() || 'Error');
         } catch {
             setLocalInput('Error');
         }
@@ -41,7 +63,6 @@ const Calculator: React.FC = () => {
         <div className="flex h-screen justify-center">
             <div className="flex items-center justify-center w-1/2 bg-gray-200">
                 <div className="bg-black p-6 rounded-lg shadow-lg w-full max-w-xs">
-                   
                     <input
                         type="text"
                         value={localInput || inputValue.toString()}
