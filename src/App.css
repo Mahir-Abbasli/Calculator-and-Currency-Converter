@@ -1,0 +1,6 @@
+@media (max-width: 768px) {
+    .flex {
+        flex-direction: column;
+        /* Küçük ekranlarda dikey hizalama */
+    }
+}
